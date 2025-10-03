@@ -1,0 +1,12 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Run Pricing Assistant",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/pricing_assistant/__main__.py",
+            "console": "integratedTerminal"
+        }
+    ]
+}
