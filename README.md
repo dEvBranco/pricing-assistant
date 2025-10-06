@@ -193,9 +193,11 @@ Obter permissões quando necessário
 Usar de forma ética e responsável
 
 ### 🆘 Suporte
-Encontrou um bug ou tem uma sugestão? Abra uma issue.
 
+Encontrou um bug ou tem uma sugestão? [Abra uma issue](https://github.com/SEU_USERNAME/pricing-assistant/issues).
 
-### Desenvolvido com ❤️ para a comunidade de vendedores online
+---
 
-### Precificação inteligente para decisões mais informadas 🎯
+**Desenvolvido com ❤️ para a comunidade de vendedores online**
+
+*Precificação inteligente para decisões mais informadas* 🎯
