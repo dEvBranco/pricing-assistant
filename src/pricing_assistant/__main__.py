@@ -1,26 +1,34 @@
-#!/usr/bin/env python3
+"""
+Ponto de entrada principal do Pricing Assistant
+"""
+
 import sys
 import os
 
-# VERSÃO SUPER-SEGURA - path absoluto explícito
-current_dir = os.getcwd()
-src_path = os.path.join(current_dir, "src")
-sys.path.insert(0, src_path)
+# Adiciona o src ao path do Python
+current_dir = os.path.dirname(os.path.abspath(__file__))
+src_dir = os.path.dirname(current_dir)  # sobe para src/
+sys.path.insert(0, src_dir)
 
 
 def main():
-    print("=" * 50)
-    print("🎯 PRICING ASSISTANT - PATH FIXED")
-    print("=" * 50)
-
+    """Inicia a aplicação (GUI com fallback para CLI)"""
     try:
-        from pricing_assistant.ui.cli import run_cli
+        # Tentar GUI primeiro
+        from pricing_assistant.ui.gui_launcher import main as gui_main
 
-        print("✅ Módulos carregados com sucesso!")
-        print("🚀 Iniciando aplicação...\n")
-        run_cli()
-    except ImportError as e:
-        print(f"❌ Erro: {e}")
+        gui_main()
+    except Exception as e:
+        print(f"Erro ao iniciar GUI: {e}")
+        print("Tentando CLI...")
+        try:
+            from pricing_assistant.ui.cli import main as cli_main
+
+            cli_main()
+        except Exception as cli_error:
+            print(f"Erro ao iniciar CLI: {cli_error}")
+            print("Verifique a instalação do projeto.")
+            sys.exit(1)
 
 
 if __name__ == "__main__":

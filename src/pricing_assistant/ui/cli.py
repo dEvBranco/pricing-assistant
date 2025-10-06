@@ -1,69 +1,66 @@
 """
-Interface de linha de comandos
+Interface de Linha de Comando - Versão Corrigida
 """
 
-from ..services.analysis import AnalysisService
-from ..sources.vinted import VintedSource
+import sys
+import os
+
+# Configurar path absoluto
+current_dir = os.path.dirname(__file__)
+project_root = os.path.dirname(os.path.dirname(current_dir))
+sys.path.insert(0, project_root)
+
+from pricing_assistant.services.analysis import AnalysisService
+from pricing_assistant.utils.config import Config
+from pricing_assistant.sources.vinted import VintedSource
 
 
-def run_cli():
-    """Executa a interface CLI"""
-    print("\n🎯 PRICING ASSISTANT")
-    print("=" * 50)
+def main():
+    """Função principal da CLI"""
+    print("🎯 Pricing Assistant - CLI Mode")
+    print("=" * 40)
 
-    # Inicializar serviços
-    sources = [VintedSource()]
-    analyzer = AnalysisService(sources)
+    try:
+        # Criar data sources
+        data_sources = [VintedSource()]
+        service = AnalysisService(data_sources=data_sources)
+        config = Config()
 
-    while True:
-        print("\n📦 O que queres vender?")
-        print("💡 Ex: 't-shirt nike', 'teclado', 'cadeira auto'")
-        print("❌ 'sair' para terminar")
+        # Obter input do usuário
+        search_query = input("🔍 Produto para pesquisar: ").strip()
 
-        produto = input("\n🔍 Produto: ").strip()
+        print("\n📦 Condições disponíveis:")
+        print("1 - Novo")
+        print("2 - Muito Bom")
+        print("3 - Bom")
+        print("4 - Razoável")
 
-        if produto.lower() in ["sair", "exit", "quit"]:
-            break
+        condition_choice = input("\nEscolha a condição (1-4): ").strip()
+        condition_map = {"1": "new", "2": "very_good", "3": "good", "4": "satisfactory"}
 
-        if not produto:
-            continue
+        condition = condition_map.get(condition_choice, "new")
 
-        estado = (
-            input("📝 Estado (novo/muito bom/bom/razoável) [bom]: ").strip().lower()
+        print(f"\n⏳ Analisando '{search_query}' ({condition})...")
+
+        # Executar análise
+        result = service.analyze_product(
+            search_query=search_query, condition=condition, max_pages=2
         )
-        if not estado:
-            estado = "bom"
 
-        # Analisar
-        try:
-            resultado = analyzer.analyze_product(produto, estado)
-            mostrar_resultado(resultado)
-        except Exception as e:
-            print(f"❌ Erro: {e}")
+        # Mostrar resultados
+        print("\n✅ Análise concluída!")
+        print(f"📊 Itens encontrados: {len(result.comparable_items)}")
+        print(f"💰 Preço recomendado: €{result.pricing_recommendation.final_price:.2f}")
+        print(
+            f"📈 Faixa de preços: €{result.pricing_recommendation.price_range.min:.2f} - €{result.pricing_recommendation.price_range.max:.2f}"
+        )
 
-    print("\n👋 Até breve!")
+    except KeyboardInterrupt:
+        print("\n👋 Operação cancelada pelo usuário")
+    except Exception as e:
+        print(f"\n❌ Erro: {e}")
+        print("💡 Dica: Execute o assistente de configuração primeiro")
 
 
-def mostrar_resultado(resultado: dict):
-    """Mostra resultados da análise"""
-    rec = resultado["recommendation"]
-
-    print(f"\n📊 RESULTADO: {resultado['product'].upper()}")
-    print("-" * 40)
-    print(f"📝 Estado: {resultado['condition']}")
-
-    if resultado["market_data"]["prices"]:
-        prices = resultado["market_data"]["prices"]
-        print(f"📈 Mercado: {len(prices)} preços analisados")
-        print(f"💰 Variação: €{min(prices):.2f} - €{max(prices):.2f}")
-
-    print("\n💡 RECOMENDAÇÕES:")
-    print(f"   🎯 SUGERIDO: €{rec.suggested:.2f}")
-    print(f"   ⚡ MÍNIMO: €{rec.minimum:.2f}")
-    print(f"   💎 MÁXIMO: €{rec.maximum:.2f}")
-    print(f"   🎲 CONFIANÇA: {rec.confidence:.0%}")
-
-    if rec.reasoning:
-        print("\n🤔 PORQUÊ:")
-        for motivo in rec.reasoning:
-            print(f"   • {motivo}")
+if __name__ == "__main__":
+    main()
