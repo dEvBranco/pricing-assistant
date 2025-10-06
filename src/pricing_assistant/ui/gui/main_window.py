@@ -242,7 +242,7 @@ class PricingAssistantGUI:
         messagebox.showerror("Erro na Análise", error_msg)
 
     def _show_results(self, result):
-        """Mostra os resultados da análise - VERSÃO FINAL ROBUSTA"""
+        """Mostra os resultados da análise - VERSÃO FINAL COMPLETA"""
         # Acessar os dados da estrutura REAL
         product_name = result.get("product", "N/A")
         condition = result.get("condition", "N/A")
@@ -265,51 +265,35 @@ class PricingAssistantGUI:
         # Preços encontrados
         text += f"💰 PREÇOS ENCONTRADOS: {len(prices)}\n"
         if prices:
-            text += f"📈 FAIXA DE PREÇOS: €{min(prices):.2f} - €{max(prices):.2f}\n"
+            text += (
+                f"📈 FAIXA DE PREÇOS REAIS: €{min(prices):.2f} - €{max(prices):.2f}\n"
+            )
             text += f"📊 PREÇO MÉDIO: €{sum(prices) / len(prices):.2f}\n\n"
         else:
             text += "⚠️  Nenhum preço encontrado para análise\n\n"
 
-        # Recomendação - VERSÃO ROBUSTA que funciona com qualquer estrutura
-        text += "🎯 RECOMENDAÇÃO:\n"
+        # RECOMENDAÇÃO COMPLETA - AGORA COM TODOS OS DADOS!
+        text += "🎯 RECOMENDAÇÃO DE PREÇO:\n"
 
-        if recommendation:
-            # Tentar diferentes formas de aceder aos dados
-            final_price = None
-            base_price = None
-            price_range = None
+        if recommendation and hasattr(recommendation, "suggested"):
+            # Preços recomendados
+            text += f"   💰 Preço sugerido: €{getattr(recommendation, 'suggested', 0):.2f}\n"
+            text += (
+                f"   📉 Preço mínimo: €{getattr(recommendation, 'minimum', 0):.2f}\n"
+            )
+            text += (
+                f"   📈 Preço máximo: €{getattr(recommendation, 'maximum', 0):.2f}\n"
+            )
+            text += f"   🎯 Confiança: {getattr(recommendation, 'confidence', 0) * 100:.1f}%\n\n"
 
-            # Método 1: Se for objeto com atributos
-            if hasattr(recommendation, "final_price"):
-                final_price = getattr(recommendation, "final_price", None)
-            if hasattr(recommendation, "base_price"):
-                base_price = getattr(recommendation, "base_price", None)
-            if hasattr(recommendation, "price_range"):
-                price_range = getattr(recommendation, "price_range", None)
-
-            # Método 2: Se for dicionário
-            elif isinstance(recommendation, dict):
-                final_price = recommendation.get("final_price")
-                base_price = recommendation.get("base_price")
-                price_range = recommendation.get("price_range")
-
-            # Mostrar os valores encontrados
-            if final_price is not None:
-                text += f"   • Preço final recomendado: €{final_price:.2f}\n"
-            if base_price is not None:
-                text += f"   • Preço base: €{base_price:.2f}\n"
-            if price_range is not None:
-                # Verificar se price_range é objeto ou dict
-                if hasattr(price_range, "min") and hasattr(price_range, "max"):
-                    text += f"   • Faixa sugerida: €{price_range.min:.2f} - €{price_range.max:.2f}\n"
-                elif isinstance(price_range, dict):
-                    text += f"   • Faixa sugerida: €{price_range.get('min', 0):.2f} - €{price_range.get('max', 0):.2f}\n"
-
-            # Se não encontrou nenhum dos valores acima, mostrar todos os atributos
-            if final_price is None and base_price is None:
-                text += "   • (Detalhes da recomendação não disponíveis)\n"
+            # Explicação do raciocínio
+            reasoning = getattr(recommendation, "reasoning", [])
+            if reasoning:
+                text += "🧠 EXPLICAÇÃO:\n"
+                for line in reasoning:
+                    text += f"   • {line}\n"
         else:
-            text += "   • (Nenhuma recomendação disponível)\n"
+            text += "   • (Recomendação não disponível)\n"
 
         self.results_text.insert(tk.END, text)
         self.results_text.config(state=tk.DISABLED)
@@ -318,7 +302,7 @@ class PricingAssistantGUI:
         for item in self.tree.get_children():
             self.tree.delete(item)
 
-        # Atualizar treeview com preços
+        # Atualizar treeview com preços reais
         for i, price in enumerate(prices, 1):
             self.tree.insert(
                 "",
